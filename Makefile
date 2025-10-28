@@ -28,8 +28,6 @@ CFLAGS		:=	$(ARCH) -Os -mword-relocations \
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
-
 ASFLAGS		:=	$(ARCH)
 LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,--strip-debug
 
@@ -54,6 +52,12 @@ export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 
 export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
 export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES)) \
+			$(PICAFILES:.v.pica=.shbin.o) $(SHLISTFILES:.shlist=.shbin.o) \
+			$(addsuffix .o,$(T3XFILES))
+export HFILES	:=	$(PICAFILES:.v.pica=_shbin.h) $(SHLISTFILES:.shlist=_shbin.h) \
+			$(addsuffix .h,$(subst .,_,$(BINFILES))) \
+			$(GFXFILES:.t3s=.h)
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
@@ -95,11 +99,17 @@ $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) -C $(BUILD) -f $(CURDIR)/Makefile
 
+$(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@tex3ds -i $< -H $(BUILD)/$*.h -d $(DEPSDIR)/$*.d -o $(GFXBUILD)/$*.t3x
+
 #---------------------------------------------------------------------------------
 
 else
 
 DEPENDS	:=	$(OFILES:.o=.d)
+$(OFILES) $(OFILES_BIN): $(HFILES)
 
 #---------------------------------------------------------------------------------
 # main targets
@@ -134,11 +144,6 @@ $(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
 %.shbin.o %_shbin.h : %.shbin
 	$(SILENTMSG) $(notdir $<)
 	$(bin2o)
-
-%.t3x	%.h	:	%.t3s
-	@echo $(notdir $<)
-	@tex3ds -i $< -H $*.h -d $*.d -o $*.t3x
-	@ls
 
 #---------------------------------------------------------------------------------
 
