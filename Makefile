@@ -7,7 +7,7 @@ TARGET		:= 	$(notdir $(CURDIR))
 PLGINFO 	:= 	3gxlauncher.plgInfo
 
 BUILD		:= 	build
-INCLUDES	:= 	include source/ui source/parsing source/loaders
+INCLUDES	:= 	include source/ui source/parsing source/loaders $(CURDIR)/$(BUILD)
 SOURCES 	:= 	source source/ui source/parsing source/loaders
 
 ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
