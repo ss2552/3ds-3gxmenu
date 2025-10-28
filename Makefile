@@ -52,7 +52,7 @@ CFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 SFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 
 export LD 		:= 	$(CXX)
-export OFILES	:=	$(TOPDIR) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES	:=	$(TOPDIR)/program.shbin.o $(CFILES:.c=.o) $(SFILES:.s=.o)
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) \
 					$(foreach dir,$(LIBDIRS),-I $(dir)/include) \
 					-I $(CURDIR)/$(BUILD)
