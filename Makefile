@@ -8,11 +8,11 @@ TOPDIR 		?= 	$(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
 TARGET		:= 	$(notdir $(CURDIR))
-PLGINFO 	:= 	Luma3DS-Plugin-sample.plgInfo
+PLGINFO 	:= 	3gxlauncher.plgInfo
 
 BUILD		:= 	build
-INCLUDES	:= 	sources
-SOURCES 	:= 	sources
+INCLUDES	:= 	source
+SOURCES 	:= 	source
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -65,7 +65,7 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 
