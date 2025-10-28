@@ -1,0 +1,19 @@
+Author: ESU
+
+Version:
+    Major: 0
+    Minor: 6
+    Revision: 0
+
+Targets: 0
+
+Title: 3gx_launcher
+
+Summary: 3gx Launcher
+
+Description: |
+  default.3gx
+  
+Compatibility: Any
+
+MemorySize: 10MiB
