@@ -4,44 +4,51 @@ ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-TOPDIR 		:= 	$(CURDIR)
+TOPDIR 		:= $(CURDIR)
+TARGET		:= $(notdir $(TOPDIR))
+PLGINFO 	:= 3gxlauncher.plgInfo
+BUILD		:= build
+
 include $(DEVKITARM)/3ds_rules
 
-TARGET		:= 	$(notdir $(CURDIR))
-PLGINFO 	:= 	3gxlauncher.plgInfo
+INCLUDES	:= include source/ui source/parsing source/loaders $(BUILD)
+SOURCES 	:= source source/ui source/parsing source/loaders
+LIBDIRS		:= $(CTRULIB) $(PORTLIBS)
 
-BUILD		:= 	build
-INCLUDES	:= 	include source/ui source/parsing source/loaders $(BUILD)
-SOURCES 	:= 	source source/ui source/parsing source/loaders
+ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
-
-CFLAGS		:=	$(ARCH) -Os -mword-relocations \
+CFLAGS		:= $(ARCH) -Os -mword-relocations \
 				-fomit-frame-pointer -ffunction-sections -fno-strict-aliasing
 
-CFLAGS		+=	$(INCLUDE) -D__3DS__
+export INCLUDE	:= $(foreach dir,$(INCLUDES),-I $(TOPDIR)/$(dir)) \
+					$(foreach dir,$(LIBDIRS),-I $(dir)/include) \
+					-I /opt/devkitpro/libctru/include
+CFLAGS		+= $(INCLUDE) -D__3DS__
 
-ASFLAGS		:=	$(ARCH)
-export LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,--strip-debug
+ASFLAGS		:= $(ARCH)
 
-export LIBS		:=  -lconfig -lcitro3d -lctru -lm -lz -ltinyxml2
-LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
+export LIBPATHS	:= $(foreach dir,$(LIBDIRS),-L $(dir)/lib) \
+					-L /opt/devkitpro/libctru/lib
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) $(foreach dir,$(DATA),$(CURDIR)/$(dir))
+export LDFLAGS	:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os \
+					-Wl,--gc-sections,--strip-discarded,--strip-debug
 
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+export LIBS		:= -lconfig -lcitro3d -lctru -lm -lz -ltinyxml2
 
-CFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-SFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+export OUTPUT	:= $(TOPDIR)/$(TARGET)
+export VPATH	:= $(foreach dir,$(SOURCES),$(TOPDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(TOPDIR)/$(dir))
 
-export LD 		:= 	$(CXX)
-export OFILES	:=	$(CFILES:.c=.o) $(SFILES:.s=.o)
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) $(foreach dir,$(LIBDIRS),-I $(dir)/include) -I /opt/devkitpro/libctru/include
+export DEPSDIR	:= $(TOPDIR)/$(BUILD)
 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib) -I /opt/devkitpro/libctru/lib
+CFILES		:= $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+SFILES		:= $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 
-.PHONY: $(OUTPUT).3gx $(DEPSDIR)
+export OFILES	:= $(CFILES:.c=.o) $(SFILES:.s=.o)
+
+export LD 		:= $(CXX)
+
+.PHONY: $(OUTPUT).3gx
 
 $(OUTPUT).3gx : $(OFILES)
 
