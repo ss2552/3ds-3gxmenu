@@ -4,6 +4,8 @@ ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
+export VERSTRING	:=	$(shell git describe --tags --match "v[0-9]*" --abbrev=7 | sed 's/-[0-9]*-g/-/')
+
 TOPDIR 		:= $(CURDIR)
 TARGET		:= $(notdir $(TOPDIR))
 PLGINFO 	:= 3gxlauncher.plgInfo
