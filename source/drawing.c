@@ -38,7 +38,7 @@ void lzssDecompress(const void *in, void *out, u32 size);
 
 static void loadImages(void)
 {
-	FILE* f = fopen("sdmc:/gfx/images.t3x", "rb");
+	FILE* f = fopen("romfs:/gfx/images.t3x", "rb");
 	if (!f) svcBreak(USERBREAK_PANIC);
 	s_imagesTexInfo = Tex3DS_TextureImportStdio(f, &s_imagesTex, NULL, false);
 	fclose(f);
