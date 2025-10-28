@@ -1,6 +1,6 @@
 #pragma once
 #include "common.h"
-// #include "images.h"
+#include "images.h"
 
 typedef int ImageId;
 
