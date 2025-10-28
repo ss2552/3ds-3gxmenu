@@ -4,150 +4,37 @@ ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-TOPDIR 		?= 	$(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
+TOPDIR 		?= 	$(CURDIR)
 TARGET		:= 	$(notdir $(CURDIR))
 PLGINFO 	:= 	3gxlauncher.plgInfo
-
-BUILD		:= 	build
-INCLUDES	:= 	source
-SOURCES 	:= 	source
-GRAPHICS	:=	gfx
-ROMFS		:=	romfs
-GFXBUILD	:=	$(ROMFS)/gfx
-DATA		:=	data
-
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
+SOURCES 	:= 	source source/ui source/parsing source/loaders
+INCLUDES	:= 	$(SOURCES)
 ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
-
-CFLAGS		:=	$(ARCH) -Os -mword-relocations \
-				-fomit-frame-pointer -ffunction-sections -fno-strict-aliasing
-
+CFLAGS		:=	$(ARCH) -Os -mword-relocations -fomit-frame-pointer -ffunction-sections -fno-strict-aliasing
 CFLAGS		+=	$(INCLUDE) -D__3DS__
-
 ASFLAGS		:=	$(ARCH)
 LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,--strip-debug
+export LD			:=	$(CC)
 
 LIBS		:= -lctru
 LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 
-SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
-GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
-
-#---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#---------------------------------------------------------------------------------
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-#---------------------------------------------------------------------------------
-
-export OUTPUT	:=	default # $(CURDIR)/$(TARGET)
-export TOPDIR	:=	$(CURDIR)
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
-
-export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
-export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
-export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES)) \
-			$(PICAFILES:.v.pica=.shbin.o) $(SHLISTFILES:.shlist=.shbin.o) \
-			$(addsuffix .o,$(T3XFILES))
-export HFILES	:=	$(PICAFILES:.v.pica=_shbin.h) $(SHLISTFILES:.shlist=_shbin.h) \
-			$(addsuffix .h,$(subst .,_,$(BINFILES))) \
-			$(GFXFILES:.t3s=.h)
-
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
-
 CFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 SFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 
-export LD 		:= 	$(CXX)
-export OFILES	:=	$(CFILES:.c=.o) $(SFILES:.s=.o)
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) \
-					$(foreach dir,$(LIBDIRS),-I $(dir)/include) \
-					-I $(CURDIR)/$(BUILD)
+OFILES	:=	$(CFILES:.c=.o) $(SFILES:.s=.o)
+INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) $(foreach dir,$(LIBDIRS),-I $(dir)/include) -I $(CURDIR)
 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
+LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
 
-#---------------------------------------------------------------------------------
+.PHONY: default.3gx
 
-ifneq ($(GFXBUILD),$(BUILD))
-$(GFXBUILD):
-	@mkdir -p $@
-	@ls
-endif
-
-#---------------------------------------------------------------------------------
-
-ifneq ($(DEPSDIR),$(BUILD))
-$(DEPSDIR):
-	@mkdir -p $@
-	@ls
-endif
-
-#---------------------------------------------------------------------------------
-
-.PHONY: $(BUILD) all
-
-#---------------------------------------------------------------------------------
-all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
-
-$(BUILD):
+default.3gx : $(OFILES)
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) -C $(BUILD) -f $(CURDIR)/Makefile
 
-$(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@tex3ds -i $< -H $(BUILD)/$*.h -d $(DEPSDIR)/$*.d -o $(GFXBUILD)/$*.t3x
-
-#---------------------------------------------------------------------------------
-
-else
-
-DEPENDS	:=	$(OFILES:.o=.d)
-$(OFILES) $(OFILES_BIN): $(HFILES)
-
-#---------------------------------------------------------------------------------
-# main targets
-#---------------------------------------------------------------------------------
-$(OUTPUT).3gx : $(OFILES)
-
-#---------------------------------------------------------------------------------
-# you need a rule like this for each extension you use as binary data
-#---------------------------------------------------------------------------------
-%.bin.o	:	%.bin
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#---------------------------------------------------------------------------------
-.PRECIOUS: %.elf %.t3x %.shbin
+.PRECIOUS: %.elf
 %.3gx: %.elf
-#---------------------------------------------------------------------------------
 	@echo creating $(notdir $@)
 	@3gxtool -s $(word 1, $^) $(TOPDIR)/$(PLGINFO) $@
-
-
-#---------------------------------------------------------------------------------
-
-$(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
-	@echo $(notdir $<)
-	@tex3ds -i $< -H $(BUILD)/$*.h -d $(DEPSDIR)/$*.d -o $(GFXBUILD)/$*.t3x
-	@ls
-
-#---------------------------------------------------------------------------------
-
-%.shbin.o %_shbin.h : %.shbin
-	$(SILENTMSG) $(notdir $<)
-	$(bin2o)
-
-#---------------------------------------------------------------------------------
-
--include $(DEPENDS)
-
-#---------------------------------------------------------------------------------
-endif
