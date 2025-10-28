@@ -107,6 +107,8 @@ endif
 GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
+DATA		:=	data
+GRAPHICS	:=	gfx
 
 ifneq ($(GFXBUILD),$(BUILD))
 $(GFXBUILD):
