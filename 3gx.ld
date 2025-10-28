@@ -14,8 +14,8 @@ SECTIONS
 {
 	/* =========== CODE section =========== */
 
-	PROVIDE(__start__ = 0x07000100);
-	. = __start__;
+	PROVIDE(_start = 0x07000100);
+	. = _start;
 
 	.text ALIGN(4) :
 	{
