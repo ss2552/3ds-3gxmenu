@@ -1,13 +1,17 @@
 .SUFFIXES:
 
-TOPDIR 		?= 	$(CURDIR)
+ifeq ($(strip $(DEVKITARM)),)
+$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+endif
+
+TOPDIR 		:= 	$(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
 TARGET		:= 	$(notdir $(CURDIR))
 PLGINFO 	:= 	3gxlauncher.plgInfo
 
 BUILD		:= 	build
-INCLUDES	:= 	include source/ui source/parsing source/loaders $(CURDIR)/$(BUILD)
+INCLUDES	:= 	include source/ui source/parsing source/loaders $(BUILD)
 SOURCES 	:= 	source source/ui source/parsing source/loaders
 
 ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
@@ -23,19 +27,8 @@ LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,
 LIBS		:= -lctru
 LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 
-
-
-
-
-
-
-
-
-
-
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) $(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
@@ -48,11 +41,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) $(foreach dir,
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
 
-.PHONY: $(OUTPUT).3gx all
-
-all: $(OUTPUT).3gx
-	@cd $(BUILD)
-	@pwd
+.PHONY: $(OUTPUT).3gx $(DEPSDIR)
 
 $(OUTPUT).3gx : $(OFILES)
 
