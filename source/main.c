@@ -66,3 +66,5 @@ int main()
 	ptmuExit();
 	return 0;
 }
+
+const u32 _ = 0xDEADBEEF;
