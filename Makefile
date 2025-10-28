@@ -13,6 +13,10 @@ PLGINFO 	:= 	3gxlauncher.plgInfo
 BUILD		:= 	build
 INCLUDES	:= 	source
 SOURCES 	:= 	source
+GRAPHICS	:=	gfx
+ROMFS		:=	romfs
+GFXBUILD	:=	$(ROMFS)/gfx
+DATA		:=	data
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -32,6 +36,10 @@ LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,
 LIBS		:= -lctru
 LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 
+SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
+GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
@@ -43,6 +51,9 @@ export OUTPUT	:=	default # $(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
+export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
@@ -57,6 +68,24 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) \
 					-I $(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
+
+#---------------------------------------------------------------------------------
+
+ifneq ($(GFXBUILD),$(BUILD))
+$(GFXBUILD):
+	@mkdir -p $@
+	@ls
+endif
+
+#---------------------------------------------------------------------------------
+
+ifneq ($(DEPSDIR),$(BUILD))
+$(DEPSDIR):
+	@mkdir -p $@
+	@ls
+endif
+
+#---------------------------------------------------------------------------------
 
 .PHONY: $(BUILD) all
 
@@ -87,52 +116,12 @@ $(OUTPUT).3gx : $(OFILES)
 	@$(bin2o)
 
 #---------------------------------------------------------------------------------
-.PRECIOUS: %.elf
+.PRECIOUS: %.elf %.t3x %.shbin
 %.3gx: %.elf
 #---------------------------------------------------------------------------------
 	@echo creating $(notdir $@)
 	@3gxtool -s $(word 1, $^) $(TOPDIR)/$(PLGINFO) $@
 
--include $(DEPENDS)
-
-#---------------------------------------------------------------------------------
-endif
-
-#---------------------------------------------------------------------------------
-
-
-
-#---------------------------------------------------------------------------------
-
-GRAPHICS	:=	gfx
-ROMFS		:=	romfs
-GFXBUILD	:=	$(ROMFS)/gfx
-DATA		:=	data
-GRAPHICS	:=	gfx
-
-ifneq ($(GFXBUILD),$(BUILD))
-$(GFXBUILD):
-	@mkdir -p $@
-	@ls
-endif
-
-#---------------------------------------------------------------------------------
-
-ifneq ($(DEPSDIR),$(BUILD))
-$(DEPSDIR):
-	@mkdir -p $@
-	@ls
-endif
-
-#---------------------------------------------------------------------------------
-
-SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
-GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
-
-export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
-export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
-export HFILES	:=	$(PICAFILES:.v.pica=_shbin.h) $(SHLISTFILES:.shlist=_shbin.h $(addsuffix .h,$(subst .,_,$(BINFILES))) $(GFXFILES:.t3s=.h)
 
 #---------------------------------------------------------------------------------
 
@@ -148,6 +137,9 @@ $(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
 	@tex3ds -i $< -H $*.h -d $*.d -o $*.t3x
 	@ls
 
--include $(DEPSDIR)/*.d
+#---------------------------------------------------------------------------------
+
+-include $(DEPENDS)
 
 #---------------------------------------------------------------------------------
+endif
