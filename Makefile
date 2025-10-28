@@ -8,7 +8,7 @@ TOPDIR 		?= 	$(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
 TARGET		:= 	$(notdir $(CURDIR))
-PLGINFO 	:= 	3gxlauncher.plgInfo
+PLGINFO 	:= 	Luma3DS-Plugin-sample.plgInfo
 
 BUILD		:= 	build
 INCLUDES	:= 	sources
@@ -39,7 +39,7 @@ LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	default # $(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -76,7 +76,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-default.3gx : $(OFILES)
+$(OUTPUT).3gx : $(OFILES)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
@@ -88,7 +88,7 @@ default.3gx : $(OFILES)
 
 #---------------------------------------------------------------------------------
 .PRECIOUS: %.elf
-default.3gx: %.elf
+%.3gx: %.elf
 #---------------------------------------------------------------------------------
 	@echo creating $(notdir $@)
 	@3gxtool -s $(word 1, $^) $(TOPDIR)/$(PLGINFO) $@
