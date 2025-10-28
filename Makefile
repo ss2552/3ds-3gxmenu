@@ -22,9 +22,9 @@ CFLAGS		:=	$(ARCH) -Os -mword-relocations \
 CFLAGS		+=	$(INCLUDE) -D__3DS__
 
 ASFLAGS		:=	$(ARCH)
-LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,--strip-debug
+export LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,--strip-debug
 
-LIBS		:=  -lconfig -lcitro3d -lctru -lm -lz -ltinyxml2
+export LIBS		:=  -lconfig -lcitro3d -lctru -lm -lz -ltinyxml2
 LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
@@ -37,9 +37,9 @@ SFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 
 export LD 		:= 	$(CXX)
 export OFILES	:=	$(CFILES:.c=.o) $(SFILES:.s=.o)
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) $(foreach dir,$(LIBDIRS),-I $(dir)/include)
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) $(foreach dir,$(LIBDIRS),-I $(dir)/include) -I /opt/devkitpro/libctru/include
 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib) $(LIBS)
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib) -I /opt/devkitpro/libctru/lib
 
 .PHONY: $(OUTPUT).3gx $(DEPSDIR)
 
