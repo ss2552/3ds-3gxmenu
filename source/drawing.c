@@ -1,5 +1,4 @@
 #include "drawing.h"
-#include "program_shbin.h"
 
 // Global variables
 imageInfo_s* g_imageData;
