@@ -126,7 +126,7 @@ export OFILES_SOURCES 	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES)) \
 			$(PICAFILES:.v.pica=.shbin.o) $(SHLISTFILES:.shlist=.shbin.o) \
-			$(addsuffix .o,$(T3XFILES))
+#			$(addsuffix .o,$(T3XFILES))
 
 export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
 
