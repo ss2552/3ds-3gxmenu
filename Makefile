@@ -1,38 +1,60 @@
 .SUFFIXES:
 
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-endif
-
+TOPDIR 		?= 	$(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
-TOPDIR 		?= 	$(CURDIR)
 TARGET		:= 	$(notdir $(CURDIR))
 PLGINFO 	:= 	3gxlauncher.plgInfo
+
+BUILD		:= 	build
+INCLUDES	:= 	include source/ui source/parsing source/loaders
 SOURCES 	:= 	source source/ui source/parsing source/loaders
-INCLUDES	:= 	$(SOURCES)
+
 ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
-CFLAGS		:=	$(ARCH) -Os -mword-relocations -fomit-frame-pointer -ffunction-sections -fno-strict-aliasing
+
+CFLAGS		:=	$(ARCH) -Os -mword-relocations \
+				-fomit-frame-pointer -ffunction-sections -fno-strict-aliasing
+
 CFLAGS		+=	$(INCLUDE) -D__3DS__
+
 ASFLAGS		:=	$(ARCH)
 LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,--gc-sections,--strip-discarded,--strip-debug
-export LD			:=	$(CC)
 
 LIBS		:= -lctru
 LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 
+
+
+
+
+
+
+
+
+
+
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
 CFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 SFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 
-OFILES	:=	$(CFILES:.c=.o) $(SFILES:.s=.o)
-INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) $(foreach dir,$(LIBDIRS),-I $(dir)/include) -I $(CURDIR)
+export LD 		:= 	$(CXX)
+export OFILES	:=	$(CFILES:.c=.o) $(SFILES:.s=.o)
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir) ) $(foreach dir,$(LIBDIRS),-I $(dir)/include)
 
-LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
 
-.PHONY: default.3gx
+.PHONY: $(OUTPUT).3gx all
 
-default.3gx : $(OFILES)
-	@[ -d $@ ] || mkdir -p $@
+all: $(OUTPUT).3gx
+	@cd $(BUILD)
+	@pwd
+
+$(OUTPUT).3gx : $(OFILES)
 
 .PRECIOUS: %.elf
 %.3gx: %.elf
