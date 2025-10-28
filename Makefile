@@ -107,6 +107,7 @@ endif
 ifneq ($(GFXBUILD),$(BUILD))
 $(GFXBUILD):
 	@mkdir -p $@
+	@ls
 endif
 
 #---------------------------------------------------------------------------------
@@ -114,34 +115,30 @@ endif
 ifneq ($(DEPSDIR),$(BUILD))
 $(DEPSDIR):
 	@mkdir -p $@
+	@ls
 endif
 
 #---------------------------------------------------------------------------------
 
 GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
 
-ifeq ($(GFXBUILD),$(BUILD))
-export T3XFILES :=  $(GFXFILES:.t3s=.t3x)
-else
 export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
 export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
-endif
-
-export HFILES	:=	$(PICAFILES:.v.pica=_shbin.h) $(SHLISTFILES:.shlist=_shbin.h) \
-			$(addsuffix .h,$(subst .,_,$(BINFILES))) \
-			$(GFXFILES:.t3s=.h)
+export HFILES	:=	$(PICAFILES:.v.pica=_shbin.h) $(SHLISTFILES:.shlist=_shbin.h $(addsuffix .h,$(subst .,_,$(BINFILES))) $(GFXFILES:.t3s=.h)
 
 #---------------------------------------------------------------------------------
 
 $(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
 	@echo $(notdir $<)
 	@tex3ds -i $< -H $(BUILD)/$*.h -d $(DEPSDIR)/$*.d -o $(GFXBUILD)/$*.t3x
+	@ls
 
 #---------------------------------------------------------------------------------
 
 %.t3x	%.h	:	%.t3s
 	@echo $(notdir $<)
 	@tex3ds -i $< -H $*.h -d $*.d -o $*.t3x
+	@ls
 
 -include $(DEPSDIR)/*.d
 
