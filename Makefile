@@ -23,7 +23,7 @@ CFLAGS		:= $(ARCH) -Os -mword-relocations \
 export INCLUDE	:= $(foreach dir,$(INCLUDES),-I $(TOPDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I $(dir)/include) \
 					-I /opt/devkitpro/libctru/include
-CFLAGS		+= $(INCLUDE) -D__3DS__
+CFLAGS		+= $(INCLUDE) -D__3DS__ -DVERSION=\"$(VERSTRING)\"
 
 ASFLAGS		:= $(ARCH)
 
