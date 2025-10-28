@@ -39,7 +39,7 @@ LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	default
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -76,7 +76,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-$(OUTPUT).3gx : $(OFILES)
+default.3gx : $(OFILES)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
@@ -88,7 +88,7 @@ $(OUTPUT).3gx : $(OFILES)
 
 #---------------------------------------------------------------------------------
 .PRECIOUS: %.elf
-%.3gx: %.elf
+default.3gx: %.elf
 #---------------------------------------------------------------------------------
 	@echo creating $(notdir $@)
 	@3gxtool -s $(word 1, $^) $(TOPDIR)/$(PLGINFO) $@
