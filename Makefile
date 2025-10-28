@@ -104,6 +104,10 @@ endif
 
 #---------------------------------------------------------------------------------
 
+GRAPHICS	:=	gfx
+ROMFS		:=	romfs
+GFXBUILD	:=	$(ROMFS)/gfx
+
 ifneq ($(GFXBUILD),$(BUILD))
 $(GFXBUILD):
 	@mkdir -p $@
@@ -120,7 +124,9 @@ endif
 
 #---------------------------------------------------------------------------------
 
+SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
 GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
 export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
