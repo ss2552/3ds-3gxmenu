@@ -11,7 +11,7 @@ TARGET		:= 	$(notdir $(CURDIR))
 PLGINFO 	:= 	3gxlauncher.plgInfo
 
 BUILD		:= 	build
-INCLUDES	:= 	includes
+INCLUDES	:= 	sources
 SOURCES 	:= 	sources
 
 #---------------------------------------------------------------------------------
