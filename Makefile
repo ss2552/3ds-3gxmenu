@@ -5,29 +5,32 @@ $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>dev
 endif
 
 TOPDIR ?= $(CURDIR)
-include $(DEVKITARM)/3ds_rules
+
+PORTLIBS	:=	$(DEVKITPRO)/portlibs/3ds
+CTRULIB	?=	$(DEVKITPRO)/libctru
+export PATH := $(DEVKITPRO)/portlibs/3ds/bin:$(PATH)
+include $(DEVKITPRO)/devkitARM//base_rules
 
 export VERSTRING	:=	$(shell git describe --tags --match "v[0-9]*" --abbrev=7 | sed 's/-[0-9]*-g/-/')
 
 BUILD		:=	build
 SOURCES		:=	source source/ui source/parsing source/loaders
-INCLUDES	:=	$(SOURCES)
 
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-fno-math-errno -ffunction-sections \
 			$(ARCH)
 
+export INCLUDE	:=	$(foreach dir,$(SOURCES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
 CFLAGS	+=	$(INCLUDE) -D__3DS__ -DVERSION=\"$(VERSTRING)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-T $(TOPDIR)/3gx.ld -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:= -lconfig -lcitro3d -lctru -lm -lz -ltinyxml2
 
@@ -85,6 +88,11 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 else
 
+.PRECIOUS	:	%.shbin
+%.shbin.o %_shbin.h : %.shbin
+	$(SILENTMSG) $(notdir $<)
+	$(bin2o)
+
 DEPENDS	:=	$(OFILES:.o=.d)
 
 $(OUTPUT).3gx	:	$(OUTPUT).elf
@@ -92,11 +100,11 @@ $(OUTPUT).3gx	:	$(OUTPUT).elf
 $(OFILES_SOURCES) : $(HFILES)
 
 $(OUTPUT).elf	:	$(OFILES)
-
-.PRECIOUS	:	%.shbin
-%.shbin.o %_shbin.h : %.shbin
-	$(SILENTMSG) $(notdir $<)
-	$(bin2o)
+	$(SILENTMSG) linking $(notdir $@)
+	$(ADD_COMPILE_COMMAND) end
+	$(LD) -T $(TOPDIR)/3gx.ld -g $(ARCH) -Wl,-Map,$(notdir $*.map) \
+		$(OFILES) $(LIBPATHS) $(LIBS) -o $@
+	$(NM) -CSn $@ > $(notdir $*.lst)
 
 %.3gx: %.elf
 	@echo creating $(notdir $@)
