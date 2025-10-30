@@ -6,8 +6,6 @@ endif
 
 TOPDIR ?= $(CURDIR)
 
-PORTLIBS	:=	$(DEVKITPRO)/portlibs/3ds
-CTRULIB	?=	$(DEVKITPRO)/libctru
 export PATH := $(DEVKITPRO)/portlibs/3ds/bin:$(PATH)
 include $(DEVKITPRO)/devkitARM//base_rules
 
@@ -38,15 +36,9 @@ LIBS	:= -lconfig -lcitro3d -lctru -lm -lz -ltinyxml2
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(CTRULIB)
+LIBDIRS	:= $(DEVKITPRO)/portlibs/3ds $(DEVKITPRO)/libctru
 
-
-#---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#---------------------------------------------------------------------------------
 ifneq ($(BUILD),$(notdir $(CURDIR)))
-#---------------------------------------------------------------------------------
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
@@ -79,13 +71,10 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 .PHONY: all
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all:
+	@mkdir -p $(BUILD)
 	@$(MAKE) -C $(BUILD) -f $(CURDIR)/Makefile
 
-$(BUILD):
-	@mkdir -p $@
-	
-#---------------------------------------------------------------------------------
 else
 
 .PRECIOUS	:	%.shbin
@@ -96,6 +85,8 @@ else
 DEPENDS	:=	$(OFILES:.o=.d)
 
 $(OUTPUT).3gx	:	$(OUTPUT).elf
+	@echo creating $(notdir $@)
+	@3gxtool -s $^ 3gxLauncher.plgInfo $(OUTPUT).3gx
 
 $(OFILES_SOURCES) : $(HFILES)
 
@@ -106,8 +97,6 @@ $(OUTPUT).elf	:	$(OFILES)
 		$(OFILES) $(LIBPATHS) $(LIBS) -o $@
 	$(NM) -CSn $@ > $(notdir $*.lst)
 
-%.3gx: %.elf
-	@echo creating $(notdir $@)
-	@3gxtool -s $^ 3gxLauncher.plgInfo $(OUTPUT).3gx
-
 -include $(DEPENDS)
+
+endif
